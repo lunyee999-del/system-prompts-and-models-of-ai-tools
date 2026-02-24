@@ -1,0 +1,31 @@
+name: Auto Download File
+
+# 触发条件：可以设置为定时触发，或者手动触发
+on:
+  schedule:
+    - cron: '0 0 * * *' # 每天北京时间早上8点运行
+  workflow_dispatch:      # 允许你在 GitHub 页面上点击按钮手动运行
+
+jobs:
+  download_job:
+    runs-on: ubuntu-latest # 使用 Linux 虚拟环境
+    
+    steps:
+      # 1. 检出仓库代码，这样脚本才能看见你的文件夹
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 使用 curl 命令下载文件
+      - name: Download file
+        run: |
+          mkdir -p my_downloads  # 创建你想指定的文件夹
+          curl -L "文件的下载链接" -o my_downloads/filename.ext
+
+      # 3. 将下载的文件提交并推送到 GitHub 仓库
+      - name: Commit and Push
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Automated download" || exit 0 # 如果文件没变化就不提交
+          git push
